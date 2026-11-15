@@ -40,33 +40,42 @@
 <head>
     <meta charset="UTF-8">
     <title>Register - Toko Kue</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
 
-    <h2>Register</h2>
+<body class="bg-light d-flex align-items-center justify-content-center min-vh-100">
+    <div class="card p-4 shadow-sm" style="width: 350px;">
+        <h3 class="text-center mb-3">Register</h3>
 
-    <?php if (!empty($pesan)): ?>
-        <p style="color: red;"><?= $pesan; ?></p>
-    <?php endif; ?>
 
-    <!-- Form HTML Dasar (Tampilan nanti disesuaikan Bootstrap) -->
-    <form action="register.php" method="POST">
-        <div>
-            <label for="username">Username:</label><br>
-            <input type="text" name="username" id="username" required autocomplete="off">
+        <?php if (!empty($pesan)): ?>
+            <div class="alert alert-danger py-2" role="alert">
+                <?= $pesan; ?>
+            </div>
+        <?php endif; ?>
+
+        <form action="register.php" method="POST">
+            <div class="mb-3">
+                <label for="username" class="form-label">Username:</label>
+                <input type="text" name="username" id="username" class="form-control" required autocomplete="off">
+            </div>
+            
+            <div class="mb-3">
+                <label for="password" class="form-label">Password:</label>
+                <input type="password" name="password" id="password" class="form-control" required>
+            </div>
+
+
+            <button type="submit" class="btn btn-primary w-100 mb-3">Register</button>
+        </form>
+
+        <div class="text-center">
+            <small>Sudah punya akun? <a href="login.php">Login di sini</a></small>
         </div>
 
-        <br>
-        
-        <div>
-            <label for="password">Password:</label><br>
-            <input type="password" name="password" id="password" required>
-        </div>
-        <br>
-        <button type="submit">Register</button>
-    </form>
+    </div>
 
-    <p>Sudah punya akun? <a href="login.php">Login di sini</a></p>
+</body>
 
 </body>
 </html>
