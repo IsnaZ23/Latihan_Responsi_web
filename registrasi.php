@@ -12,15 +12,12 @@
             $stmt_chek->execute();
             $stmt_chek->store_result();
 
-
             if($stmt_chek->num_rows > 0){
                 $pesan = "Username Sudah terdaftar!";
             }else{
                 $hashed_PW = password_hash($pass, PASSWORD_DEFAULT);
-
                 $stmt_insert = $koneksi->prepare("INSERT INTO users (username, password) VALUES(?,?)");
                 $stmt_insert->bind_param("ss", $user, $hashed_PW);
-
                 if($stmt_insert->execute()){
                     header("Location: login.php?status=registered");
                     exit();
@@ -29,7 +26,9 @@
                 }
                 $stmt_insert->close();
             }
+
             $stmt_chek->close();
+
         }else{
             $pesan = "Username dan Password wajib diisi!";
         }
@@ -44,9 +43,8 @@
 </head>
 <body>
 
-    <h2>Form Register</h2>
+    <h2>Register</h2>
 
-    <!-- Menampilkan pesan error jika ada -->
     <?php if (!empty($pesan)): ?>
         <p style="color: red;"><?= $pesan; ?></p>
     <?php endif; ?>
@@ -57,7 +55,9 @@
             <label for="username">Username:</label><br>
             <input type="text" name="username" id="username" required autocomplete="off">
         </div>
+
         <br>
+        
         <div>
             <label for="password">Password:</label><br>
             <input type="password" name="password" id="password" required>
