@@ -1,50 +1,55 @@
 <?php
-require 'koneksi.php';
-require 'cek_session.php';
+    include 'koneksi.php';
+    include 'cek_session.php';
 
-if (!isset($_GET['id'])) {
-    header("Location: dashboard.php");
-    exit();
-}
-$id = intval($_GET['id']);
-$result = mysqli_query($koneksi, "SELECT * FROM kue WHERE id = $id");
-$kue = mysqli_fetch_assoc($result);
+    $id = (int) $_GET["id"];
 
-if (!$kue) {
-    header("Location: dashboard.php");
-    exit();
-}
+    $stmt = $koneksi->prepare("SELECT * FROM kue WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $hasil = $stmt->get_result();
+    $data = $hasil->fetch_assoc();
+    $stmt->close();
 
-if (isset($_POST['update'])) {
-    $nama  = trim($_POST['nama']);
-    $harga = intval($_POST['harga']);
-    $stok  = intval($_POST['stok']);
-
-    $foto_lama = $kue['foto'];
-    $nama_foto_akhir = $foto_lama;
-
-    if (!empty($_FILES['foto']['name'])) {
-        $foto_name = $_FILES['foto']['name'];
-        $foto_tmp  = $_FILES['foto']['tmp_name'];
-        $ext       = pathinfo($foto_name, PATHINFO_EXTENSION);
-        $nama_baru = time() . '_' . uniqid() . '.' . $ext;
-
-        if (move_uploaded_file($foto_tmp, 'uploads/' . $nama_baru)) {
-            $nama_foto_akhir = $nama_baru;
-            if (file_exists('uploads/' . $foto_lama)) {
-                unlink('uploads/' . $foto_lama);
-            }
-        }
-    }
-
-    $stmt = $koneksi->prepare("UPDATE kue SET nama=?, harga=?, stok=?, foto=? WHERE id=?");
-    $stmt->bind_param("siisi", $nama, $harga, $stok, $nama_foto_akhir, $id);
-    if ($stmt->execute()) {
+    if (!$data) {
         header("Location: dashboard.php");
         exit();
     }
-}
+
+    if (isset($_POST["submit"])) {
+        $nama  = trim($_POST["nama"]);
+        $harga = (int) $_POST["harga"];
+        $stok  = (int) $_POST["stok"];
+        $foto  = $data["foto"];
+
+        if (!empty($_FILES["foto"]["name"])) {
+            $namaBerkas      = $_FILES["foto"]["name"];
+            $lokasiSementara = $_FILES["foto"]["tmp_name"];
+            $extensi         = pathinfo($namaBerkas, PATHINFO_EXTENSION);
+
+            $namaFotoBaru = time() . "_" . uniqid() . "." . $extensi;
+            $lokasiTujuan = "uploads/" . $namaFotoBaru;
+
+            if (move_uploaded_file($lokasiSementara, $lokasiTujuan)) {
+                if (file_exists("uploads/" . $data["foto"])) {
+                    unlink("uploads/" . $data["foto"]);
+                }
+                $foto = $namaFotoBaru;
+            }
+        }
+
+        $update = $koneksi->prepare("UPDATE kue SET nama = ?, harga = ?, stok = ?, foto = ? WHERE id = ?");
+        $update->bind_param("siisi", $nama, $harga, $stok, $foto, $id);
+
+        if ($update->execute()) {
+            header("Location: dashboard.php");
+        } else {
+            echo "Gagal memperbarui data: " . $koneksi->error;
+        }
+        $update->close();
+    }
 ?>
+
 <!DOCTYPE html>
 <html lang="id" data-bs-theme="light">
 <head>
@@ -56,10 +61,12 @@ if (isset($_POST['update'])) {
 <body class="bg-light p-4">
     <div class="container" style="max-width: 500px;">
         <h3 class="mb-4">Edit Kue</h3>
-        <form method="POST" enctype="multipart/form-data" class="card p-4 shadow-sm">
+
+        <form action="edit_kue.php?id=<?php echo $data['id']; ?>" method="POST" enctype="multipart/form-data" class="card p-4 shadow-sm">
+            <input type="hidden" name="id" value="<?php echo $data['id']; ?>">
             <div class="mb-3">
                 <label class="form-label d-block">Foto Lama</label>
-                <img src="uploads/<?= htmlspecialchars($kue['foto']); ?>" width="100" class="mb-2 img-thumbnail" alt="Foto Lama">
+                <img src="uploads/<?php echo $data['foto']; ?>" width="100" class="mb-2 img-thumbnail" alt="Foto Lama">
             </div>
             <div class="mb-3">
                 <label class="form-label">Ganti Foto (Opsional)</label>
@@ -67,18 +74,18 @@ if (isset($_POST['update'])) {
             </div>
             <div class="mb-3">
                 <label class="form-label">Nama Kue</label>
-                <input type="text" name="nama" class="form-control" value="<?= htmlspecialchars($kue['nama']); ?>" required>
+                <input type="text" name="nama" class="form-control" value="<?php echo $data['nama']; ?>" required>
             </div>
             <div class="mb-3">
                 <label class="form-label">Harga</label>
-                <input type="number" name="harga" class="form-control" value="<?= $kue['harga']; ?>" required>
+                <input type="number" name="harga" class="form-control" value="<?php echo $data['harga']; ?>" required>
             </div>
             <div class="mb-3">
                 <label class="form-label">Stok</label>
-                <input type="number" name="stok" class="form-control" value="<?= $kue['stok']; ?>" required>
+                <input type="number" name="stok" class="form-control" value="<?php echo $data['stok']; ?>" required>
             </div>
             <div>
-                <button type="submit" name="update" class="btn btn-primary">Simpan Perubahan</button>
+                <input type="submit" name="submit" value="Simpan Perubahan" class="btn btn-primary">
                 <a href="dashboard.php" class="btn btn-secondary">Kembali</a>
             </div>
         </form>

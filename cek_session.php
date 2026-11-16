@@ -1,10 +1,10 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
 
-if (!isset($_SESSION['username'])) {
-    header("Location:login.php");
-    exit();
-}
+    if (!isset($_SESSION["status_login"]) || $_SESSION["status_login"] !== true) {
+        header("Location: login.php");
+        exit();
+    }
 ?>

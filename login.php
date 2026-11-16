@@ -1,41 +1,33 @@
 <?php
-session_start();
+    session_start();
+    include "koneksi.php";
 
-include "koneksi.php";
+    if (isset($_POST["login"])) {
+        $username = trim($_POST["username"]);
+        $password_asli = $_POST["password"];
 
-$pesan = "";
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $user = trim($_POST["username"]);
-    $pass = trim($_POST["password"]);
-
-    if (!empty($user) && !empty($pass)) {
-        $stmt = $koneksi->prepare(
-            "SELECT id, username, password FROM users WHERE username = ?",
-        );
-        $stmt->bind_param("s", $user);
+        $stmt = $koneksi->prepare("SELECT id, username, password FROM users WHERE username = ?");
+        $stmt->bind_param("s", $username);
         $stmt->execute();
-        $result = $stmt->get_result();
-
-        if ($result->num_rows == 1) {
-            $row = $result->fetch_assoc();
-
-            if (password_verify($pass, $row["password"])) {
-                $_SESSION["user_id"] = $row["id"];
-                $_SESSION["username"] = $row["username"];
-
-                header("Location: dashboard.php");
-                exit();
-            } else {
-                $pesan = "Password salah!";
-            }
-        } else {
-            $pesan = "Username tidak ditemukan!";
-        }
+        $id = 0;
+        $user_db = "";
+        $password_hash = "";
+        $stmt->bind_result($id, $user_db, $password_hash);
+        $stmt->fetch();
         $stmt->close();
-    } else {
-        $pesan = "Username dan Password wajib diisi!";
+
+        if ($password_hash !== "" && password_verify($password_asli, $password_hash)) {
+            $_SESSION["status_login"] = true;
+            $_SESSION["user_id"] = $id;
+            $_SESSION["username"] = $user_db;
+            setcookie("user", $user_db, time() + 86400);
+            header("Location: dashboard.php");
+            exit();
+        } else {
+            header("Location: login.php?pesan=salah");
+            exit();
+        }
     }
-}
 ?>
 
 <!DOCTYPE html>
@@ -50,8 +42,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="card p-4 shadow-sm" style="width: 350px;">
         <h3 class="text-center mb-3">Login</h3>
 
-        <?php if (!empty($pesan)): ?>
-            <div class="alert alert-danger py-2"><?= $pesan ?></div>
+        <?php if (isset($_GET["pesan"]) && $_GET["pesan"] == "salah"): ?>
+            <div class="alert alert-danger py-2">Username atau password salah.</div>
         <?php endif; ?>
 
         <?php if (isset($_GET["status"]) && $_GET["status"] == "registered"): ?>

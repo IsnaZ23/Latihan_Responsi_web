@@ -1,8 +1,10 @@
 <?php
-session_start();
-session_unset();
-session_destroy();
+    session_start();
+    session_unset();
+    session_destroy();
 
-header("Location:login.php");
-exit();
+    setcookie("user", "", time() - 3600);
+
+    header("Location: login.php");
+    exit();
 ?>

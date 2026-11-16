@@ -1,35 +1,36 @@
 <?php
-    include 'koneksi.php';
+    include "koneksi.php";
     $pesan = "";
 
-    if($_SERVER['REQUEST_METHOD'] == 'POST'){
-        $user = trim($_POST['username']);
-        $pass = trim($_POST['password']);
+    if (isset($_POST["register"])) {
+        $username = trim($_POST["username"]);
+        $password_asli = $_POST["password"];
 
-        if(!empty($user) && !empty($pass)){
-            $stmt_chek = $koneksi->prepare("SELECT id FROM users WHERE username = ?");
-            $stmt_chek->bind_param("s", $user);
-            $stmt_chek->execute();
-            $stmt_chek->store_result();
+        if (!empty($username) && !empty($password_asli)) {
+            $stmt_cek = $koneksi->prepare("SELECT id FROM users WHERE username = ?");
+            $stmt_cek->bind_param("s", $username);
+            $stmt_cek->execute();
+            $id_cek = 0;
+            $stmt_cek->bind_result($id_cek);
+            $stmt_cek->fetch();
+            $stmt_cek->close();
 
-            if($stmt_chek->num_rows > 0){
-                $pesan = "Username Sudah terdaftar!";
-            }else{
-                $hashed_PW = password_hash($pass, PASSWORD_DEFAULT);
-                $stmt_insert = $koneksi->prepare("INSERT INTO users (username, password) VALUES(?,?)");
-                $stmt_insert->bind_param("ss", $user, $hashed_PW);
-                if($stmt_insert->execute()){
+            if ($id_cek) {
+                $pesan = "Username sudah terdaftar!";
+            } else {
+                $password_hash = password_hash($password_asli, PASSWORD_DEFAULT);
+                $stmt = $koneksi->prepare("INSERT INTO users (username, password) VALUES (?, ?)");
+                $stmt->bind_param("ss", $username, $password_hash);
+
+                if ($stmt->execute()) {
                     header("Location: login.php?status=registered");
                     exit();
-                }else{
-                    $pesan = "Gagal Mendaftar!";
+                } else {
+                    $pesan = "Registrasi gagal: " . $koneksi->error;
                 }
-                $stmt_insert->close();
+                $stmt->close();
             }
-
-            $stmt_chek->close();
-
-        }else{
+        } else {
             $pesan = "Username dan Password wajib diisi!";
         }
     }
@@ -45,8 +46,8 @@
 </head>
 <body class="bg-light d-flex align-items-center justify-content-center min-vh-100">
     <div class="card p-4 shadow-sm" style="width: 350px;">
-        <h3 class="text-center mb-3">Register</h3> 
-        
+        <h3 class="text-center mb-3">Register</h3>
+
         <?php if (!empty($pesan)): ?>
             <div class="alert alert-danger py-2"><?= $pesan; ?></div>
         <?php endif; ?>
