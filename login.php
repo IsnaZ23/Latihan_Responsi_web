@@ -1,15 +1,17 @@
 <?php
 session_start();
 
-include 'koneksi.php';
+include "koneksi.php";
 
 $pesan = "";
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $user = trim($_POST['username']);
-    $pass = trim($_POST['password']);
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $user = trim($_POST["username"]);
+    $pass = trim($_POST["password"]);
 
     if (!empty($user) && !empty($pass)) {
-        $stmt = $koneksi->prepare("SELECT id, username, password FROM users WHERE username = ?");
+        $stmt = $koneksi->prepare(
+            "SELECT id, username, password FROM users WHERE username = ?",
+        );
         $stmt->bind_param("s", $user);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -17,9 +19,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($result->num_rows == 1) {
             $row = $result->fetch_assoc();
 
-            if (password_verify($pass, $row['password'])) {
-                $_SESSION['user_id'] = $row['id'];
-                $_SESSION['username'] = $row['username'];
+            if (password_verify($pass, $row["password"])) {
+                $_SESSION["user_id"] = $row["id"];
+                $_SESSION["username"] = $row["username"];
 
                 header("Location: dashboard.php");
                 exit();
@@ -46,15 +48,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </head>
 <body class="bg-light d-flex align-items-center justify-content-center min-vh-100">
     <div class="card p-4 shadow-sm" style="width: 350px;">
-        <h3 class="text-center mb-3">Login</h3> 
+        <h3 class="text-center mb-3">Login</h3>
 
-        <!-- Menampilkan pesan error (menggunakan $pesan) -->
         <?php if (!empty($pesan)): ?>
-            <div class="alert alert-danger py-2"><?= $pesan; ?></div>
+            <div class="alert alert-danger py-2"><?= $pesan ?></div>
         <?php endif; ?>
 
-        <!-- Menampilkan pesan jika baru saja register -->
-        <?php if (isset($_GET['status']) && $_GET['status'] == 'registered'): ?>
+        <?php if (isset($_GET["status"]) && $_GET["status"] == "registered"): ?>
             <div class="alert alert-success py-2">Registrasi berhasil! Silakan login.</div>
         <?php endif; ?>
 
