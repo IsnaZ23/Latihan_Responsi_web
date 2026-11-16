@@ -2,6 +2,10 @@
 require 'koneksi.php';
 require 'cek_session.php';
 
+if (!isset($_GET['id'])) {
+    header("Location: dashboard.php");
+    exit();
+}
 $id = intval($_GET['id']);
 $result = mysqli_query($koneksi, "SELECT * FROM kue WHERE id = $id");
 $kue = mysqli_fetch_assoc($result);
@@ -23,17 +27,19 @@ if (isset($_POST['update'])) {
         $foto_name = $_FILES['foto']['name'];
         $foto_tmp  = $_FILES['foto']['tmp_name'];
         $ext       = pathinfo($foto_name, PATHINFO_EXTENSION);
-        $nama_foto_akhir = time() . '_' . uniqid() . '.' . $ext;
-        
-        if (move_uploaded_file($foto_tmp, 'uploads/' . $nama_foto_akhir)) {
+        $nama_baru = time() . '_' . uniqid() . '.' . $ext;
+
+        if (move_uploaded_file($foto_tmp, 'uploads/' . $nama_baru)) {
+            $nama_foto_akhir = $nama_baru;
             if (file_exists('uploads/' . $foto_lama)) {
                 unlink('uploads/' . $foto_lama);
             }
         }
     }
 
-    $query = "UPDATE kue SET nama='$nama', harga='$harga', stok='$stok', foto='$nama_foto_akhir' WHERE id=$id";
-    if (mysqli_query($koneksi, $query)) {
+    $stmt = $koneksi->prepare("UPDATE kue SET nama=?, harga=?, stok=?, foto=? WHERE id=?");
+    $stmt->bind_param("siisi", $nama, $harga, $stok, $nama_foto_akhir, $id);
+    if ($stmt->execute()) {
         header("Location: dashboard.php");
         exit();
     }
@@ -53,7 +59,7 @@ if (isset($_POST['update'])) {
         <form method="POST" enctype="multipart/form-data" class="card p-4 shadow-sm">
             <div class="mb-3">
                 <label class="form-label d-block">Foto Lama</label>
-                <img src="uploads/<?= $kue['foto']; ?>" width="100" class="mb-2 img-thumbnail" alt="Foto Lama">
+                <img src="uploads/<?= htmlspecialchars($kue['foto']); ?>" width="100" class="mb-2 img-thumbnail" alt="Foto Lama">
             </div>
             <div class="mb-3">
                 <label class="form-label">Ganti Foto (Opsional)</label>

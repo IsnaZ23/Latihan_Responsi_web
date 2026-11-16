@@ -25,11 +25,11 @@
             <?php while ($row = mysqli_fetch_assoc($result)): ?>
                 <div class="col-md-4 mb-4">
                     <div class="card h-100 shadow-sm">
-                        <img src="uploads/<?= $row['foto']; ?>" class="card-img-top" style="height: 180px; object-fit: cover;" alt="<?= $row['nama']; ?>">
+                        <img src="uploads/<?= htmlspecialchars($row['foto']); ?>" class="card-img-top" style="height: 180px; object-fit: cover;" alt="<?= htmlspecialchars($row['nama']); ?>">
                         <div class="card-body d-flex flex-column">
                             <h5 class="card-title"><?= htmlspecialchars($row['nama']); ?></h5>
                             <p class="card-text mb-1">Harga: Rp <?= number_format($row['harga'], 0, ',', '.'); ?></p>
-                            <p class="card-text mb-3">Stok: <?= $row['stok']; ?></p>
+                            <p class="card-text mb-3">Stok: <?= (int)$row['stok']; ?></p>
                             <div class="mt-auto">
                                 <a href="edit_kue.php?id=<?= $row['id']; ?>" class="btn btn-warning btn-sm me-1">Edit</a>
                                 <a href="hapus_kue.php?id=<?= $row['id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus kue ini?')">Hapus</a>

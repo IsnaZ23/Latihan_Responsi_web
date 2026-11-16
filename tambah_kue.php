@@ -15,11 +15,11 @@ if (isset($_POST['submit'])) {
     $target_dir     = 'uploads/' . $nama_foto_baru;
 
     if (move_uploaded_file($foto_tmp, $target_dir)) {
-        $query = "INSERT INTO kue (nama, harga, stok, foto) VALUES ('$nama', '$harga', '$stok', '$nama_foto_baru')";
-        if (mysqli_query($koneksi, $query)) {
-            header("Location: dashboard.php");
-            exit();
-        }
+        $stmt = $koneksi->prepare("INSERT INTO kue (nama, harga, stok, foto) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("siis", $nama, $harga, $stok, $nama_foto_baru);
+        $stmt->execute();
+        header("Location: dashboard.php");
+        exit;
     }
 }
 ?>
@@ -36,7 +36,7 @@ if (isset($_POST['submit'])) {
 <body class="bg-light p-4">
     <div class="container" style="max-width: 500px;">
         <h3 class="mb-4">Tambah Kue</h3>
-        
+
         <form method="POST" enctype="multipart/form-data" class="card p-4 shadow-sm">
             <div class="mb-3">
                 <label class="form-label">Foto Kue</label>
